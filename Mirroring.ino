@@ -1,3 +1,4 @@
+    
 #include <ESP8266WiFi.h>
 #include "Wire.h"          
 #include <PubSubClient.h>  
@@ -12,8 +13,8 @@
 
 //#define BRIDGE "Lab Green"
 //#define BRIDGE "Lab Blue"
-#define BRIDGE "Lab Red"
-//#define BRIDGE "Sieg Master"
+//#define BRIDGE "Lab Red"
+#define BRIDGE "Sieg Master"
 
 const int button1Pin = 14;
 const int button2Pin = 12;
@@ -30,8 +31,8 @@ int button2State = 0;
 int button3State = 0;
 int button4State = 0;
 
-int emotion = 1;
-int count = countButton1;
+int emotion = 0;
+int count = 0;
 
 String ip; //Hue Bridge IP Address
 String api_token; //Hue Bridge Authentication api_token
@@ -212,7 +213,14 @@ void button4() {
   }
 }
 
+//Description: Update the emotion variable to the emotion
+//with the greatest button count. If none of the emotion
+//buttons have been pressed, emotion should equal 0.
 void getEmotion() {
+  if(count < countButton1){
+    count = countButton1;
+    emotion = 1;
+  }
   if(count < countButton2){
     count = countButton2;
     emotion = 2;
@@ -230,25 +238,48 @@ void getEmotion() {
   Serial.println(emotion);
 }
 
+//------------------------------------------------------------------------------------------
+//---------------------------------HUB GROUP IDS--------------------------------------------
+//  Master Sieg:
+//    Group ID : 1 
+//    Name : Lower Lobby 
+//    Lights {22, 15, 10, 21, 7, 23, 16, 14, 11}
+//    
+//    Group ID : 2
+//    Name : Upper Lobby 
+//    Lights : {18, 20, 12, 25, 26, 5, 8, 19, 13, 24, 9, 17}
+//    
+//    Group ID : 3
+//    Name : Alternating Lights Set 1 
+//    Lights : {22, 10, 7, 16, 11, 18, 12, 26, 8, 13, 9}
+//    
+//    Group ID : 4
+//    Name : Alternating Lights Set 2 
+//    Lights : {15, 21, 23, 14, 20, 25, 5, 19, 24, 17}
+//    
+//------------------------------------------------------------------------------------------
+
+
+//Description : Visualize the emotion with the highest count.
+// method visualize is currently using : Master Sieg Group IDs
 void visualize () {
   if(emotion == 1){ //Happy
-    changeGroup(4, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
-    changeGroup(5, 3, "on", "true", "hue", "5000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "150", "sat", "150");
   }
   if(emotion == 2){ //Okay
-    changeGroup(4, 3, "on", "true", "hue", "40000", "bri", "150", "sat", "150");
-    changeGroup(5, 3, "on", "true", "hue", "20000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "150", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "150", "sat", "150");
   }
   if(emotion == 3){ //Sad
-    changeGroup(4, 3, "on", "true", "hue", "10000", "bri", "150", "sat", "150");
-    changeGroup(5, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "10000", "bri", "150", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
   }
  if(emotion == 4){ //Mad
-    changeGroup(4, 3, "on", "true", "hue", "30000", "bri", "150", "sat", "150");
-    changeGroup(5, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "30000", "bri", "150", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
+  }
+ if(emotion == 0){ //Default White
+    changeGroup(0, 3, 'on", "true", "hue", "10000", "bri", "150", "sat", "0");
   }
 }
-
-
-
-
