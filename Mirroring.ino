@@ -19,17 +19,14 @@
 const int button1Pin = 14;
 const int button2Pin = 12;
 const int button3Pin = 13;
-const int button4Pin = 15;
 
 int countButton1 = 0;
 int countButton2 = 0;
 int countButton3 = 0;
-int countButton4 = 0;
 
 int button1State = 0;
 int button2State = 0;
 int button3State = 0;
-int button4State = 0;
 
 int emotion = 0;
 int count = 0;
@@ -147,7 +144,6 @@ void loop() {
   button1();
   button2();
   button3();
-  button4();
 
   getEmotion();
   visualize();
@@ -160,9 +156,7 @@ void loop() {
 //
 //  Serial.print("button 3 = ");
 //  Serial.println(countButton3);
-//
-//  Serial.print("button 4 = ");
-//  Serial.println(countButton4);
+
 }
 
 //Happy _ yellow & orange
@@ -201,18 +195,6 @@ void button3() {
   }
 }
 
-//Mad_ Red_Orange
-void button4() {
-  button4State = digitalRead(button4Pin);
-  //Serial.println(button4State);
-  if (button4State == HIGH) {
-    countButton4 += 1;
-    //delay(500);
-  } else if(button4State == LOW) {
-    
-  }
-}
-
 //Description: Update the emotion variable to the emotion
 //with the greatest button count. If none of the emotion
 //buttons have been pressed, emotion should equal 0.
@@ -228,10 +210,6 @@ void getEmotion() {
   if(count < countButton3){
     count = countButton3;
     emotion = 3;
-  }
-  if(count < countButton4){
-    count = countButton4;
-    emotion = 4;
   }
   if (count == 0) {
     Serial.print("No buttons have been pressed yet.");
@@ -289,10 +267,6 @@ void visualize () {
   if(emotion == 3){ //Sad
     changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
-  }
- if(emotion == 4){ //Mad
-    changeGroup(3, 3, "on", "true", "hue", "60000", "bri", "254", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "0", "bri", "254", "sat", "150");
   }
  if(emotion == 0){ //Default White
     changeGroup(0, 3, 'on", "true", "hue", "40000", "bri", "254", "sat", "100");
