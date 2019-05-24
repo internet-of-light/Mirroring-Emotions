@@ -171,7 +171,7 @@ void button1() {
   //Serial.println(button1State);
   if (button1State == HIGH) {
     countButton1 += 1;
-    delay(500);
+    //delay(500);
   } else if(button1State == LOW) {
     
   }
@@ -183,7 +183,7 @@ void button2() {
   //Serial.println(button2State);
   if (button2State == HIGH) {
     countButton2 += 1;
-    delay(500);
+    //delay(500);
   } else if(button2State == LOW) {
     
   }
@@ -195,7 +195,7 @@ void button3() {
   //Serial.println(button3State);
   if (button3State == HIGH) {
     countButton3 += 1;
-    delay(500);
+    //delay(500);
   } else if(button3State == LOW) {
     
   }
@@ -207,7 +207,7 @@ void button4() {
   //Serial.println(button4State);
   if (button4State == HIGH) {
     countButton4 += 1;
-    delay(500);
+    //delay(500);
   } else if(button4State == LOW) {
     
   }
@@ -232,18 +232,21 @@ void getEmotion() {
   if(count < countButton4){
     count = countButton4;
     emotion = 4;
-  }  
+  }
+  if (count == 0) {
+    Serial.print("No buttons have been pressed yet.");
+  } else {
   Serial.print(count);
   Serial.print(" presses for button: ");
   Serial.println(emotion);
+  }
 }
 
-//------------------------------------------------------------------------------------------
 //---------------------------------HUB GROUP IDS--------------------------------------------
 //  Master Sieg:
 //    Group ID : 1 
 //    Name : Lower Lobby 
-//    Lights {22, 15, 10, 21, 7, 23, 16, 14, 11}
+//    Lights : {22, 15, 10, 21, 7, 23, 16, 14, 11}
 //    
 //    Group ID : 2
 //    Name : Upper Lobby 
@@ -256,6 +259,18 @@ void getEmotion() {
 //    Group ID : 4
 //    Name : Alternating Lights Set 2 
 //    Lights : {15, 21, 23, 14, 20, 25, 5, 19, 24, 17}
+//
+//    Group ID : 6
+//    Name : Stripe Closest to Elevator
+//    Lights : {10, 23, 11, 12, 5, 13, 17}
+//
+//    Group ID : 7
+//    Name : Stripe in the Middle
+//    Lights : {15, 7, 14, 20, 26, 19, 9}
+//
+//    Group ID : 8
+//    Name : Stripe Near Hall
+//    Lights : {22, 21, 16, 18, 25, 8, 24}
 //    
 //------------------------------------------------------------------------------------------
 
@@ -264,22 +279,22 @@ void getEmotion() {
 // method visualize is currently using : Master Sieg Group IDs
 void visualize () {
   if(emotion == 1){ //Happy
-    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
   }
   if(emotion == 2){ //Okay
-    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "150", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
   }
   if(emotion == 3){ //Sad
-    changeGroup(3, 3, "on", "true", "hue", "10000", "bri", "150", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
   }
  if(emotion == 4){ //Mad
-    changeGroup(3, 3, "on", "true", "hue", "30000", "bri", "150", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "50000", "bri", "150", "sat", "150");
+    changeGroup(3, 3, "on", "true", "hue", "60000", "bri", "254", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "0", "bri", "254", "sat", "150");
   }
  if(emotion == 0){ //Default White
-    changeGroup(0, 3, 'on", "true", "hue", "10000", "bri", "150", "sat", "0");
+    changeGroup(0, 3, 'on", "true", "hue", "40000", "bri", "254", "sat", "100");
   }
 }
