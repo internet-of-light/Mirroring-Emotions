@@ -32,7 +32,7 @@ int emotion = 0;
 int count = 0;
 
 String ip; //Hue Bridge IP Address
-String api_token; //Hue Bridge Authentication api_token
+String api_token; //Hue Bridge Authentication api_token , the username
 
 
 void changeGroup(byte groupNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
@@ -131,11 +131,11 @@ void setup() {
   pinMode(button1Pin, INPUT);
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
-  pinMode(button4Pin, INPUT);
 
   setup_wifi();
 
-  changeGroup(4, 3, "on", "true", "hue", "0", "bri", "100", "sat", "0");
+  changeGroup(4, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
+  changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
  
 }
 
@@ -159,37 +159,40 @@ void loop() {
 
 }
 
-//Happy _ yellow & orange
+//Happy Emotion
 void button1() {
   button1State = digitalRead(button1Pin);
   //Serial.println(button1State);
   if (button1State == HIGH) {
     countButton1 += 1;
-    //delay(500);
+    pulse();
+    delay(1000);
   } else if(button1State == LOW) {
     
   }
 }
 
-//Okay _ green_orange_white
+//Okay Emotion
 void button2() {
   button2State = digitalRead(button2Pin);
   //Serial.println(button2State);
   if (button2State == HIGH) {
     countButton2 += 1;
-    //delay(500);
+    pulse();
+    delay(1000);
   } else if(button2State == LOW) {
     
   }
 }
 
-//Sad _ Blue_purple
+//Sad Emotion
 void button3() {
   button3State = digitalRead(button3Pin);
   //Serial.println(button3State);
   if (button3State == HIGH) {
     countButton3 += 1;
-    //delay(500);
+    pulse();
+    delay(1000);
   } else if(button3State == LOW) {
     
   }
@@ -198,21 +201,38 @@ void button3() {
 //Description: Update the emotion variable to the emotion
 //with the greatest button count. If none of the emotion
 //buttons have been pressed, emotion should equal 0.
+//In order to keep track of emotions that are tied as the
+//highest count, we build an integer value with all the
+//emotion numbers. For example, if emotion 1 (happy) and
+//emotion 2 (okay) were both the highest count, the
+//emotion value would build to 21.
 void getEmotion() {
-  if(count < countButton1){
+  emotion = 0;
+  if((count <= countButton1) && (countButton1 != 0)){ // Emotion 1 is happy.
     count = countButton1;
     emotion = 1;
   }
-  if(count < countButton2){
+  if((count <= countButton2) && (countButton2 != 0)){ // Emotion 2 is okay/neutral.
     count = countButton2;
-    emotion = 2;
+    if ((emotion == 1) && (countButton2 == countButton1)) { 
+      emotion += 20;
+    } else {
+      emotion = 2;
+    }
   }
-  if(count < countButton3){
+  if((count <= countButton3) && (countButton3 != 0)){ // Emotion 3 is sad.
     count = countButton3;
-    emotion = 3;
+    if (((emotion == 1) && (countButton3 == countButton1)) || ((emotion == 2) && (countButton3 == countButton2))) {
+      emotion += 30;
+    } else if ((emotion == 21) && (countButton3 == countButton1) && (countButton3 == countButton2)) {
+      emotion += 300;
+    } else {
+      emotion = 3;
+    }
   }
   if (count == 0) {
     Serial.print("No buttons have been pressed yet.");
+    emotion = 0;
   } else {
   Serial.print(count);
   Serial.print(" presses for button: ");
@@ -249,26 +269,50 @@ void getEmotion() {
 //    Group ID : 8
 //    Name : Stripe Near Hall
 //    Lights : {22, 21, 16, 18, 25, 8, 24}
+//
+//    Group ID : 9
+//    Name : Outer Box Upper Lobby
+//    Lights : {18, 20, 12, 5, 13, 17, 9, 24, 8, 25}
+//    Note : if doing a pattern with outer box, the inner lights are 26 and 19
+//
+//    Group ID : 10
+//    Name : Outer Box Lower Lobby
+//    Lights : {22, 15, 10, 23, 11, 14, 16, 21}
+//    Note : if doing a pattern with outer box, the inner light is 7
 //    
 //------------------------------------------------------------------------------------------
 
 
+// VISUALIZATIONS FOR TIED COUNTS IN PROGRESS ----------------------------------------------
+
 //Description : Visualize the emotion with the highest count.
 // method visualize is currently using : Master Sieg Group IDs
-void visualize () {
+void visualize() {
+  if(emotion == 0){ //Default White : Cool White
+    changeGroup(0, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
+  }
   if(emotion == 1){ //Happy
     changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
   }
-  if(emotion == 2){ //Okay
+  if(emotion == 2){ //Okay : Blue and Yellow Lights
     changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
   }
-  if(emotion == 3){ //Sad
+  if(emotion == 3){ //Sad : Purple and Blue Lights
     changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
   }
- if(emotion == 0){ //Default White
-    changeGroup(0, 3, 'on", "true", "hue", "40000", "bri", "254", "sat", "100");
-  }
+}
+
+//Description : Pulse the lights when a button is pressed. The outer box of
+//each lobby will change to a green color and the inner lights to a cool white
+//before updating to the new visualization.
+void pulse() {
+  changeGroup(9, 1, "on", "true", "hue", "27000", "bri", "254", "sat", "150"); // Upper Lobby
+  changeLight(26, 1, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
+  changeLight(19, 1, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
+  changeGroup(10, 1, "on", "true", "hue", "27000", "bri", "254", "sat", "150"); // Lower Lobby
+  changeLight(7, 1, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
+  
 }
