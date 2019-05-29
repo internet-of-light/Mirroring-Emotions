@@ -166,7 +166,6 @@ void button1() {
   if (button1State == HIGH) {
     countButton1 += 1;
     pulse();
-    delay(1000);
   } else if(button1State == LOW) {
     
   }
@@ -179,7 +178,6 @@ void button2() {
   if (button2State == HIGH) {
     countButton2 += 1;
     pulse();
-    delay(1000);
   } else if(button2State == LOW) {
     
   }
@@ -192,7 +190,6 @@ void button3() {
   if (button3State == HIGH) {
     countButton3 += 1;
     pulse();
-    delay(1000);
   } else if(button3State == LOW) {
     
   }
@@ -292,16 +289,42 @@ void visualize() {
     changeGroup(0, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
   }
   if(emotion == 1){ //Happy
-    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
+//    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
+//    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
+    changeGroup(6, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "225");
+    changeGroup(7, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "175");
+    changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "115");
   }
   if(emotion == 2){ //Okay : Blue and Yellow Lights
-    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
+//    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
+//    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
+    changeGroup(6, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "225");
+    changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "175");
+    changeGroup(8, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "115");
   }
   if(emotion == 3){ //Sad : Purple and Blue Lights
-    changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
+//    changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
+//    changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
+    changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "225");
+    changeGroup(7, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "175");
+    changeGroup(8, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "115");
+  }
+  if(emotion == 21) {
+    changeGroup(3, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
+  }
+  if(emotion == 31) {
+    changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
+  }
+  if(emotion == 32) {
+    changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
+    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
+  }
+  if(emotion == 321) {
+    changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
+    changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
+    changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
   }
 }
 
@@ -309,10 +332,14 @@ void visualize() {
 //each lobby will change to a green color and the inner lights to a cool white
 //before updating to the new visualization.
 void pulse() {
-  changeGroup(9, 1, "on", "true", "hue", "27000", "bri", "254", "sat", "150"); // Upper Lobby
+  changeGroup(9, 1, "on", "true", "hue", "20000", "bri", "254", "sat", "150"); // Upper Lobby
+  changeGroup(9, 10, "on", "true", "hue", "20000", "bri", "50", "sat", "150"); // dim the brightness
   changeLight(26, 1, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
   changeLight(19, 1, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
-  changeGroup(10, 1, "on", "true", "hue", "27000", "bri", "254", "sat", "150"); // Lower Lobby
+  changeGroup(10, 1, "on", "true", "hue", "20000", "bri", "254", "sat", "150"); // Lower Lobby
+  changeGroup(10, 10, "on", "true", "hue", "20000", "bri", "50", "sat", "150"); // dim the brightness
   changeLight(7, 1, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
-  
+  changeGroup(9, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150"); // snap brightness back faster
+  changeGroup(10, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150"); // snap brightness back faster
+  delay(1000); // Hold the lights in this setting briefly before changing visualization again.
 }
