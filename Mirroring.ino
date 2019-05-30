@@ -165,9 +165,7 @@ void button1() {
   //Serial.println(button1State);
   if (button1State == HIGH) {
     countButton1 += 1;
-    pulse();
-  } else if(button1State == LOW) {
-    
+    //pulse();
   }
 }
 
@@ -177,9 +175,7 @@ void button2() {
   //Serial.println(button2State);
   if (button2State == HIGH) {
     countButton2 += 1;
-    pulse();
-  } else if(button2State == LOW) {
-    
+    //pulse();
   }
 }
 
@@ -189,9 +185,7 @@ void button3() {
   //Serial.println(button3State);
   if (button3State == HIGH) {
     countButton3 += 1;
-    pulse();
-  } else if(button3State == LOW) {
-    
+    //pulse();
   }
 }
 
@@ -309,19 +303,19 @@ void visualize() {
     changeGroup(7, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "175");
     changeGroup(8, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "115");
   }
-  if(emotion == 21) {
+  if(emotion == 21) { // Happy and Okay are displayed.
     changeGroup(3, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
   }
-  if(emotion == 31) {
+  if(emotion == 31) { // Sad and Happy are displayed.
     changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
   }
-  if(emotion == 32) {
+  if(emotion == 32) { // Sad and Okay are displayed.
     changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
   }
-  if(emotion == 321) {
+  if(emotion == 321) { // All emotions are displayed.
     changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
