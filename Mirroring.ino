@@ -64,7 +64,7 @@ void changeGroup(byte groupNum, byte transitiontime, String parameter, String ne
 }
 
 void changeLight(byte lightNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
-                 String newValue2 = "", String parameter3 = "", String newValue3 = "") {
+                 String newValue2 = "", String parameter3 = "", String newValue3 = "",String parameter4 = "", String newValue4 = "") {
 
   String req_string = "http://" + ip + "/api/" + api_token + "/lights/" + lightNum + "/state";
   HTTPClient http;
@@ -73,6 +73,7 @@ void changeLight(byte lightNum, byte transitiontime, String parameter, String ne
   String put_string = "{\"" + parameter + "\":" + newValue + ", \"transitiontime\":" + transitiontime;
   if (!parameter2.equals("")) put_string += + ", \"" + parameter2 + "\": " + newValue2;
   if (!parameter3.equals("")) put_string += ", \"" + parameter3 + "\" : " + newValue3;
+  if (!parameter4.equals("")) put_string += ", \"" + parameter4 + "\" : " + newValue4;
   put_string +=  + "}";
 
   Serial.println("Attempting PUT: " + put_string + " for LIGHT: " + String(lightNum));
