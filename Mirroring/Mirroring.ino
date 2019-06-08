@@ -1,7 +1,7 @@
-    
+
 #include <ESP8266WiFi.h>
-#include "Wire.h"          
-#include <PubSubClient.h>  
+#include "Wire.h"
+#include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
 
@@ -22,7 +22,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 #define NUM_LIGHTS 4
-#define SERIAL_BAUD_RATE 115200 
+#define SERIAL_BAUD_RATE 115200
 
 //#define BRIDGE "Lab Green"
 //#define BRIDGE "Lab Blue"
@@ -50,7 +50,7 @@ String api_token; //Hue Bridge Authentication api_token , the username
 
 
 void changeGroup(byte groupNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
-                 String newValue2 = "", String parameter3 = "", String newValue3 = "",String parameter4 = "", String newValue4 = "") {
+                 String newValue2 = "", String parameter3 = "", String newValue3 = "", String parameter4 = "", String newValue4 = "") {
 
   String req_string = "http://" + ip + "/api/" + api_token + "/groups/" + groupNum + "/action";
   HTTPClient http;
@@ -78,7 +78,7 @@ void changeGroup(byte groupNum, byte transitiontime, String parameter, String ne
 }
 
 void changeLight(byte lightNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
-                 String newValue2 = "", String parameter3 = "", String newValue3 = "",String parameter4 = "", String newValue4 = "") {
+                 String newValue2 = "", String parameter3 = "", String newValue3 = "", String parameter4 = "", String newValue4 = "") {
 
   String req_string = "http://" + ip + "/api/" + api_token + "/lights/" + lightNum + "/state";
   HTTPClient http;
@@ -120,10 +120,10 @@ void setup_wifi() {
   Serial.println("");
   Serial.println("WiFi connected.");  //get the unique MAC address to use as MQTT client ID, a 'truly' unique ID.
   Serial.println(WiFi.macAddress());  //.macAddress returns a byte array 6 bytes representing the MAC address
-} 
+}
 
 void setup() {
-   if (BRIDGE == "Lab Green") {
+  if (BRIDGE == "Lab Green") {
     ip = "172.28.219.225"; //Lab Green
     api_token = "lxjNgzhDhd0X-qhgM4lsgakORvWFZPKK70pE0Fja"; //Lab Green
   }
@@ -140,7 +140,7 @@ void setup() {
     api_token = "rARKEpLebwXuW01cNVvQbnDEkd2bd56Nj-hpTETB"; //Sieg Master
   }
 
-  
+
   Serial.begin(115200);
   WiFi.begin(ssid, password);
   pinMode(button1Pin, INPUT);
@@ -151,13 +151,15 @@ void setup() {
 
   changeGroup(4, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
   changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
- 
+
 }
 
 void loop() {
   if (!client.connected()) {
-      reconnect();
-    }
+    reconnect();
+  }
+  client.loop();
+  client.subscribe("hcdeiol");
   // put your main code here, to run repeatedly:
   button1();
   button2();
@@ -166,14 +168,14 @@ void loop() {
   getEmotion();
   visualize();
 
-//  Serial.print("button 1 = ");
-//  Serial.println(countButton1);
-//
-//  Serial.print("button 2 = ");
-//  Serial.println(countButton2);
-//
-//  Serial.print("button 3 = ");
-//  Serial.println(countButton3);
+  //  Serial.print("button 1 = ");
+  //  Serial.println(countButton1);
+  //
+  //  Serial.print("button 2 = ");
+  //  Serial.println(countButton2);
+  //
+  //  Serial.print("button 3 = ");
+  //  Serial.println(countButton3);
 
 }
 
@@ -217,19 +219,19 @@ void button3() {
 //emotion value would build to 21.
 void getEmotion() {
   emotion = 0;
-  if((count <= countButton1) && (countButton1 != 0)){ // Emotion 1 is happy.
+  if ((count <= countButton1) && (countButton1 != 0)) { // Emotion 1 is happy.
     count = countButton1;
     emotion = 1;
   }
-  if((count <= countButton2) && (countButton2 != 0)){ // Emotion 2 is okay/neutral.
+  if ((count <= countButton2) && (countButton2 != 0)) { // Emotion 2 is okay/neutral.
     count = countButton2;
-    if ((emotion == 1) && (countButton2 == countButton1)) { 
+    if ((emotion == 1) && (countButton2 == countButton1)) {
       emotion += 20;
     } else {
       emotion = 2;
     }
   }
-  if((count <= countButton3) && (countButton3 != 0)){ // Emotion 3 is sad.
+  if ((count <= countButton3) && (countButton3 != 0)) { // Emotion 3 is sad.
     count = countButton3;
     if (((emotion == 1) && (countButton3 == countButton1)) || ((emotion == 2) && (countButton3 == countButton2))) {
       emotion += 30;
@@ -243,28 +245,28 @@ void getEmotion() {
     Serial.print("No buttons have been pressed yet.");
     emotion = 0;
   } else {
-  Serial.print(count);
-  Serial.print(" presses for button: ");
-  Serial.println(emotion);
+    Serial.print(count);
+    Serial.print(" presses for button: ");
+    Serial.println(emotion);
   }
 }
 
 //---------------------------------HUB GROUP IDS--------------------------------------------
 //  Master Sieg:
-//    Group ID : 1 
-//    Name : Lower Lobby 
+//    Group ID : 1
+//    Name : Lower Lobby
 //    Lights : {22, 15, 10, 21, 7, 23, 16, 14, 11}
-//    
+//
 //    Group ID : 2
-//    Name : Upper Lobby 
+//    Name : Upper Lobby
 //    Lights : {18, 20, 12, 25, 26, 5, 8, 19, 13, 24, 9, 17}
-//    
+//
 //    Group ID : 3
-//    Name : Alternating Lights Set 1 
+//    Name : Alternating Lights Set 1
 //    Lights : {22, 10, 7, 16, 11, 18, 12, 26, 8, 13, 9}
-//    
+//
 //    Group ID : 4
-//    Name : Alternating Lights Set 2 
+//    Name : Alternating Lights Set 2
 //    Lights : {15, 21, 23, 14, 20, 25, 5, 19, 24, 17}
 //
 //    Group ID : 6
@@ -288,7 +290,7 @@ void getEmotion() {
 //    Name : Outer Box Lower Lobby
 //    Lights : {22, 15, 10, 23, 11, 14, 16, 21}
 //    Note : if doing a pattern with outer box, the inner light is 7
-//    
+//
 //------------------------------------------------------------------------------------------
 
 
@@ -297,46 +299,46 @@ void getEmotion() {
 //Description : Visualize the emotion with the highest count.
 // method visualize is currently using : Master Sieg Group IDs
 void visualize() {
-  if(emotion == 0){ //Default White : Cool White THIS IS THE MirroringDefault VIZ
+  if (emotion == 0) { //Default White : Cool White THIS IS THE MirroringDefault VIZ
     changeGroup(0, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
   }
-  if(emotion == 1){ //Happy THIS IS THE MirroringHappyGradient VIZ
-//    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
-//    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
+  if (emotion == 1) { //Happy THIS IS THE MirroringHappyGradient VIZ
+    //    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
+    //    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
     changeGroup(6, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "225");
     changeGroup(7, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "175");
     changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "115");
     // send request to mqtt change palettes
   }
-  if(emotion == 2){ //Okay : Blue and Yellow Lights THIS IS THE MirroringOkayGradient VIZ
-//    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
-//    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
+  if (emotion == 2) { //Okay : Blue and Yellow Lights THIS IS THE MirroringOkayGradient VIZ
+    //    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
+    //    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(6, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "225");
     changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "175");
     changeGroup(8, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "115");
     // send request to mqtt change palettes
   }
-  if(emotion == 3){ //Sad : Purple and Blue Lights THIS IS THE MirroringSadGradient VIZ
-//    changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
-//    changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
+  if (emotion == 3) { //Sad : Purple and Blue Lights THIS IS THE MirroringSadGradient VIZ
+    //    changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
+    //    changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "225");
     changeGroup(7, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "175");
     changeGroup(8, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "115");
     // send request to mqtt change palettes
   }
-  if(emotion == 21) { // Happy and Okay are displayed. THIS IS THE MirroringOH VIZ
+  if (emotion == 21) { // Happy and Okay are displayed. THIS IS THE MirroringOH VIZ
     changeGroup(3, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
   }
-  if(emotion == 31) { // Sad and Happy are displayed. THIS IS THE MirroringSH VIZ
+  if (emotion == 31) { // Sad and Happy are displayed. THIS IS THE MirroringSH VIZ
     changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
   }
-  if(emotion == 32) { // Sad and Okay are displayed. THIS IS THE MirroringSO VIZ
+  if (emotion == 32) { // Sad and Okay are displayed. THIS IS THE MirroringSO VIZ
     changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
   }
-  if(emotion == 321) { // All emotions are displayed. THIS IS THE MirroringSOH VIZ
+  if (emotion == 321) { // All emotions are displayed. THIS IS THE MirroringSOH VIZ
     changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
@@ -363,9 +365,25 @@ void pulse() {
 //Rank the emotions from greatest to least.
 //void rank()
 
+bool MIRRORING_RUNNING = true;
 
-
-
+//receive MQTT messages
+void subscribeReceive(char* topic, byte* payload, unsigned int length) {
+  // Print the topic
+  dbprintln("MQTT message Topic: " + topic + ", Message: ");
+  for (int i = 0; i < length; i ++)
+  {
+    dbprint(char(payload[i]));
+  }
+  if(char(payload[0] = '0')) {
+    MIRRORING_RUNNING = false;
+  }
+  if(char(payload[0] = '1')) {
+    MIRRORING_RUNNING = true;
+  }
+  // Print a newline
+  dbprintln("");
+}
 
 
 //Connect to MQTT server
@@ -373,6 +391,7 @@ void reconnect() {
   while (!client.connected()) { // Loop until we're reconnected
     dbprintln("Attempting MQTT connection...");
     if (client.connect(DEVICE_MQTT_NAME, mqtt_username, mqtt_password)) {  // Attempt to connect
+      client.setCallback(subscribeReceive);
       dbprintln("MQTT connected");
       //client.subscribe(subscribe_top); //Does ttt need to sub to anything?
       //sendState(0);
@@ -385,6 +404,7 @@ void reconnect() {
     }
   }
 }
+
 
 
 //Send MQTT status update
