@@ -28,8 +28,9 @@ int button1State = 0;
 int button2State = 0;
 int button3State = 0;
 
-int emotion = 0;
-int count = 0;
+int emotion = 0; //keeps track of which emotion(s) should be displayed
+int count = 0; //keeps track of the highest emotion count
+int rank = 0; //
 
 String ip; //Hue Bridge IP Address
 String api_token; //Hue Bridge Authentication api_token , the username
@@ -280,43 +281,46 @@ void getEmotion() {
 //Description : Visualize the emotion with the highest count.
 // method visualize is currently using : Master Sieg Group IDs
 void visualize() {
-  if(emotion == 0){ //Default White : Cool White
+  if(emotion == 0){ //Default White : Cool White THIS IS THE MirroringDefault VIZ
     changeGroup(0, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
   }
-  if(emotion == 1){ //Happy
+  if(emotion == 1){ //Happy THIS IS THE MirroringHappyGradient VIZ
 //    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
 //    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
     changeGroup(6, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "225");
     changeGroup(7, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "175");
     changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "115");
+    // send request to mqtt change palettes
   }
-  if(emotion == 2){ //Okay : Blue and Yellow Lights
+  if(emotion == 2){ //Okay : Blue and Yellow Lights THIS IS THE MirroringOkayGradient VIZ
 //    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
 //    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(6, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "225");
     changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "175");
     changeGroup(8, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "115");
+    // send request to mqtt change palettes
   }
-  if(emotion == 3){ //Sad : Purple and Blue Lights
+  if(emotion == 3){ //Sad : Purple and Blue Lights THIS IS THE MirroringSadGradient VIZ
 //    changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
 //    changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "225");
     changeGroup(7, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "175");
     changeGroup(8, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "115");
+    // send request to mqtt change palettes
   }
-  if(emotion == 21) { // Happy and Okay are displayed.
+  if(emotion == 21) { // Happy and Okay are displayed. THIS IS THE MirroringOH VIZ
     changeGroup(3, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
   }
-  if(emotion == 31) { // Sad and Happy are displayed.
+  if(emotion == 31) { // Sad and Happy are displayed. THIS IS THE MirroringSH VIZ
     changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
   }
-  if(emotion == 32) { // Sad and Okay are displayed.
+  if(emotion == 32) { // Sad and Okay are displayed. THIS IS THE MirroringSO VIZ
     changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
   }
-  if(emotion == 321) { // All emotions are displayed.
+  if(emotion == 321) { // All emotions are displayed. THIS IS THE MirroringSOH VIZ
     changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
     changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
     changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
@@ -338,3 +342,7 @@ void pulse() {
   changeGroup(10, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150"); // snap brightness back faster
   delay(1000); // Hold the lights in this setting briefly before changing visualization again.
 }
+
+//Description: Each hour, we must compare the counts of the lights for the summary visualization.
+//Rank the emotions from greatest to least.
+//void rank()
