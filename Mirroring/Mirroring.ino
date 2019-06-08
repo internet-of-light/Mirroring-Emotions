@@ -155,6 +155,9 @@ void setup() {
 }
 
 void loop() {
+  if (!client.connected()) {
+      reconnect();
+    }
   // put your main code here, to run repeatedly:
   button1();
   button2();
