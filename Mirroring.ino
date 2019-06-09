@@ -8,19 +8,19 @@
 #define ssid "University of Washington"   // Wifi network SSID
 #define password ""                       // Wifi network password
 
+bool MIRRORING_RUNNING = true;
+
 //-------------------MQTT------------------------
 #define MQTT_TOPIC "hcdeiol"
-const char* mqtt_server = "test.mosquitto.org";
+const char* mqtt_server = "broker.hivemq.com";
 const char* mqtt_username = "";
 const char* mqtt_password = "";
 const int mqtt_port = 1883;
 #define DEVICE_MQTT_NAME "mirroringHCDEIOL"
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient client(mqtt_server, mqtt_port, espClient);
 
-#define NUM_LIGHTS 4
-#define SERIAL_BAUD_RATE 115200
 
 //#define BRIDGE "Lab Green"
 //#define BRIDGE "Lab Blue"
@@ -45,6 +45,8 @@ int button3State = 0;
 
 // Keeps track of which emotion(s) should be displayed
 int emotion = 0;
+int prevEmotion = 0;
+unsigned long lastEmotionUpdateTime = 0; //Stop us from sending updates to lights too fast
 // Keeps track of the highest emotion count
 int count = 0;
 // Keeps track of the order of the emotion counts from least to greatest
@@ -99,24 +101,29 @@ void setup() {
 
   setup_wifi();
 
-  changeGroup(4, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
-  changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
+  //changeGroup(4, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
+  //changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
 
 }
+
 
 void loop() {
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-  client.subscribe("hcdeiol");
   // put your main code here, to run repeatedly:
   button1();
   button2();
   button3();
 
   getEmotion();
-  visualize();
+  //Max update speed = once every 5 seconds
+  if(emotion != prevEmotion && (millis() - lastEmotionUpdateTime > 5000) {
+    visualize();
+    prevEmotion = emotion;
+    lastEmotionUpdateTime = millis()
+  }
 }
 
 
@@ -344,33 +351,33 @@ void pulse() {
 //Rank the emotions from least to greatest.
 //void rank()
 
-bool MIRRORING_RUNNING = true;
+
 
 //receive MQTT messages
 void subscribeReceive(char* topic, byte* payload, unsigned int length) {
   // Print the topic
-  dbprintln("MQTT message Topic: " + topic + ", Message: ");
+  Serial.println("MQTT message Topic: " + String(topic) + ", Message: ");
   for (int i = 0; i < length; i ++)
   {
-    dbprint(char(payload[i]));
+    Serial.print(char(payload[i]));
   }
-  if(char(payload[0] = '0')) {
+  if(char(payload[0] == '0')) {
     MIRRORING_RUNNING = false;
   }
-  if(char(payload[0] = '1')) {
+  if(char(payload[0] == '1')) {
     MIRRORING_RUNNING = true;
   }
   // Print a newline
-  dbprintln("");
+  Serial.println("");
 }
 
 //Connect to MQTT server
 void reconnect() {
   while (!client.connected()) { // Loop until we're reconnected
-    dbprintln("Attempting MQTT connection...");
+    Serial.println("Attempting MQTT connection...");
     if (client.connect(DEVICE_MQTT_NAME, mqtt_username, mqtt_password)) {  // Attempt to connect
       client.setCallback(subscribeReceive);
-      dbprintln("MQTT connected");
+      Serial.println("MQTT connected");
       //client.subscribe(subscribe_top); //Does ttt need to sub to anything?
       //sendState(0);
     } else {
@@ -383,7 +390,7 @@ void reconnect() {
   }
 }
 
-//Send MQTT status update
+//Send Palette to Hourglass to push to lights
 void sendPalette(String paletteName) {
   StaticJsonBuffer<512> jsonBuffer;
 
