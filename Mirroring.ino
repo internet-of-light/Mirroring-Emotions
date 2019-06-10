@@ -1,6 +1,5 @@
 
 #include <ESP8266WiFi.h>
-#include "Wire.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
@@ -8,7 +7,7 @@
 #define ssid "University of Washington"   // Wifi network SSID
 #define password ""                       // Wifi network password
 
-bool MIRRORING_RUNNING = true;
+//bool MIRRORING_RUNNING_DOWNSTAIRS = true;
 
 //-------------------MQTT------------------------
 #define MQTT_TOPIC "hcdeiol"
@@ -118,11 +117,12 @@ void loop() {
   button3();
 
   getEmotion();
+  unsigned long currentTime = millis();
   //Max update speed = once every 5 seconds
-  if(emotion != prevEmotion && (millis() - lastEmotionUpdateTime > 5000) {
+  if(emotion != prevEmotion && (currentTime - lastEmotionUpdateTime > 5000)) {
     visualize();
     prevEmotion = emotion;
-    lastEmotionUpdateTime = millis()
+    lastEmotionUpdateTime = currentTime;
   }
 }
 
@@ -353,23 +353,25 @@ void pulse() {
 
 
 
-//receive MQTT messages
-void subscribeReceive(char* topic, byte* payload, unsigned int length) {
-  // Print the topic
-  Serial.println("MQTT message Topic: " + String(topic) + ", Message: ");
-  for (int i = 0; i < length; i ++)
-  {
-    Serial.print(char(payload[i]));
-  }
-  if(char(payload[0] == '0')) {
-    MIRRORING_RUNNING = false;
-  }
-  if(char(payload[0] == '1')) {
-    MIRRORING_RUNNING = true;
-  }
-  // Print a newline
-  Serial.println("");
-}
+////receive MQTT messages
+//void subscribeReceive(char* topic, byte* payload, unsigned int length) {
+//  // Print the topic
+//  Serial.println("MQTT message Topic: " + String(topic) + ", Message: ");
+//  for (int i = 0; i < length; i ++)
+//  {
+//    Serial.print(char(payload[i]));
+//  }
+//  String plString = String((char *)payload);
+//  if(char(payload[0] == 'm')) {
+//    if(char(payload[1] == '0')) {
+//      MIRRORING_RUNNING_DOWNSTAIRS = false;
+//    }else if(char(payload[1] == '1')) {
+//      MIRRORING_RUNNING_DOWNSTAIRS = true;
+//    }
+//  }
+//  // Print a newline
+//  Serial.println("");
+//}
 
 //Connect to MQTT server
 void reconnect() {

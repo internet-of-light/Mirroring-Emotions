@@ -1,6 +1,5 @@
 
 #include <ESP8266WiFi.h>
-#include "Wire.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
@@ -8,21 +7,19 @@
 #define ssid "University of Washington"   // Wifi network SSID
 #define password ""                       // Wifi network password
 
+//bool MIRRORING_RUNNING_DOWNSTAIRS = true;
 
-//MQTT
+//-------------------MQTT------------------------
 #define MQTT_TOPIC "hcdeiol"
-const char* mqtt_server = "test.mosquitto.org";
+const char* mqtt_server = "broker.hivemq.com";
 const char* mqtt_username = "";
 const char* mqtt_password = "";
 const int mqtt_port = 1883;
 #define DEVICE_MQTT_NAME "mirroringHCDEIOL"
 
-
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient client(mqtt_server, mqtt_port, espClient);
 
-#define NUM_LIGHTS 4
-#define SERIAL_BAUD_RATE 115200
 
 //#define BRIDGE "Lab Green"
 //#define BRIDGE "Lab Blue"
@@ -33,77 +30,31 @@ const int button1Pin = 14;
 const int button2Pin = 12;
 const int button3Pin = 13;
 
+// Keeps track of the number of times the "happy" button has been pressed.
 int countButton1 = 0;
+// Keeps track of the number of times the "okay" button has been pressed.
 int countButton2 = 0;
+// Keeps track of the number of times the "sad" button has been pressed.
 int countButton3 = 0;
 
+// Variables for reading pushbutton status.
 int button1State = 0;
 int button2State = 0;
 int button3State = 0;
 
-int emotion = 0; //keeps track of which emotion(s) should be displayed
-int count = 0; //keeps track of the highest emotion count
-int rank = 0; //
+// Keeps track of which emotion(s) should be displayed
+int emotion = 0;
+int prevEmotion = 0;
+unsigned long lastEmotionUpdateTime = 0; //Stop us from sending updates to lights too fast
+// Keeps track of the highest emotion count
+int count = 0;
+// Keeps track of the order of the emotion counts from least to greatest
+int rank = 0;
 
 String ip; //Hue Bridge IP Address
 String api_token; //Hue Bridge Authentication api_token , the username
 
-
-void changeGroup(byte groupNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
-                 String newValue2 = "", String parameter3 = "", String newValue3 = "", String parameter4 = "", String newValue4 = "") {
-
-  String req_string = "http://" + ip + "/api/" + api_token + "/groups/" + groupNum + "/action";
-  HTTPClient http;
-  http.begin(req_string);
-
-  String put_string = "{\"" + parameter + "\":" + newValue + ", \"transitiontime\": " +
-                      transitiontime;
-  if (!parameter2.equals("")) put_string += + ", \"" + parameter2 + "\": " + newValue2;
-  if (!parameter3.equals("")) put_string += + ", \"" + parameter3 + "\": " + newValue3;
-  if (!parameter4.equals("")) put_string += ", \"" + parameter4 + "\" : " + newValue4;
-  put_string +=  + "}";
-
-  Serial.println("Attempting PUT: " + put_string + " for GROUP: " + String(groupNum));
-
-  int httpResponseCode = http.PUT(put_string);
-  if (httpResponseCode == 200) {
-    String response = http.getString();
-    Serial.println("Response code: " + httpResponseCode);
-    Serial.println("Response: " + response);
-  } else {
-    Serial.print("Error on sending PUT Request: ");
-    Serial.println(String(httpResponseCode));
-  }
-  http.end();
-}
-
-void changeLight(byte lightNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
-                 String newValue2 = "", String parameter3 = "", String newValue3 = "", String parameter4 = "", String newValue4 = "") {
-
-  String req_string = "http://" + ip + "/api/" + api_token + "/lights/" + lightNum + "/state";
-  HTTPClient http;
-  http.begin(req_string);
-
-  String put_string = "{\"" + parameter + "\":" + newValue + ", \"transitiontime\":" + transitiontime;
-  if (!parameter2.equals("")) put_string += + ", \"" + parameter2 + "\": " + newValue2;
-  if (!parameter3.equals("")) put_string += ", \"" + parameter3 + "\" : " + newValue3;
-  if (!parameter4.equals("")) put_string += ", \"" + parameter4 + "\" : " + newValue4;
-  put_string +=  + "}";
-
-  Serial.println("Attempting PUT: " + put_string + " for LIGHT: " + String(lightNum));
-
-
-  int httpResponseCode = http.PUT(put_string);
-  if (httpResponseCode == 200) {
-    String response = http.getString();
-    Serial.println("Response code: " + httpResponseCode);
-    Serial.println("Response: " + response);
-  } else {
-    Serial.println("Error on sending PUT Request: ");
-    Serial.println(String(httpResponseCode));
-  }
-  http.end();
-}
+//---------------------------------------------------------------------------------------------------------------------
 
 /////SETUP_WIFI/////
 void setup_wifi() {
@@ -149,34 +100,93 @@ void setup() {
 
   setup_wifi();
 
-  changeGroup(4, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
-  changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
+  //changeGroup(4, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
+  //changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100"); //Set lights to a cool white.
 
 }
+
 
 void loop() {
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-  client.subscribe("hcdeiol");
   // put your main code here, to run repeatedly:
   button1();
   button2();
   button3();
 
   getEmotion();
-  visualize();
+  unsigned long currentTime = millis();
+  //Max update speed = once every 5 seconds
+  if(emotion != prevEmotion && (currentTime - lastEmotionUpdateTime > 5000)) {
+    visualize();
+    prevEmotion = emotion;
+    lastEmotionUpdateTime = currentTime;
+  }
+}
 
-  //  Serial.print("button 1 = ");
-  //  Serial.println(countButton1);
-  //
-  //  Serial.print("button 2 = ");
-  //  Serial.println(countButton2);
-  //
-  //  Serial.print("button 3 = ");
-  //  Serial.println(countButton3);
 
+//-------------------------------------------------------METHODS--------------------------------------------------------------------------
+
+// Description : Changes the lights attached to the given group ID to the given parameters with the given transition time.
+// Can change up to 4 parameters.
+void changeGroup(byte groupNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
+                 String newValue2 = "", String parameter3 = "", String newValue3 = "", String parameter4 = "", String newValue4 = "") {
+
+  String req_string = "http://" + ip + "/api/" + api_token + "/groups/" + groupNum + "/action";
+  HTTPClient http;
+  http.begin(req_string);
+
+  String put_string = "{\"" + parameter + "\":" + newValue + ", \"transitiontime\": " +
+                      transitiontime;
+  if (!parameter2.equals("")) put_string += + ", \"" + parameter2 + "\": " + newValue2;
+  if (!parameter3.equals("")) put_string += + ", \"" + parameter3 + "\": " + newValue3;
+  if (!parameter4.equals("")) put_string += ", \"" + parameter4 + "\" : " + newValue4;
+  put_string +=  + "}";
+
+  Serial.println("Attempting PUT: " + put_string + " for GROUP: " + String(groupNum));
+
+  int httpResponseCode = http.PUT(put_string);
+  if (httpResponseCode == 200) {
+    String response = http.getString();
+    Serial.println("Response code: " + httpResponseCode);
+    Serial.println("Response: " + response);
+  } else {
+    Serial.print("Error on sending PUT Request: ");
+    Serial.println(String(httpResponseCode));
+  }
+  http.end();
+}
+
+// Description : Changes the lights attached to the given light ID to the given parameters with the given transition time.
+// Can change up to 4 parameters.
+void changeLight(byte lightNum, byte transitiontime, String parameter, String newValue, String parameter2 = "",
+                 String newValue2 = "", String parameter3 = "", String newValue3 = "", String parameter4 = "", String newValue4 = "") {
+
+  String req_string = "http://" + ip + "/api/" + api_token + "/lights/" + lightNum + "/state";
+  HTTPClient http;
+  http.begin(req_string);
+
+  String put_string = "{\"" + parameter + "\":" + newValue + ", \"transitiontime\":" + transitiontime;
+  if (!parameter2.equals("")) put_string += + ", \"" + parameter2 + "\": " + newValue2;
+  if (!parameter3.equals("")) put_string += ", \"" + parameter3 + "\" : " + newValue3;
+  if (!parameter4.equals("")) put_string += ", \"" + parameter4 + "\" : " + newValue4;
+  put_string +=  + "}";
+
+  Serial.println("Attempting PUT: " + put_string + " for LIGHT: " + String(lightNum));
+
+
+  int httpResponseCode = http.PUT(put_string);
+  if (httpResponseCode == 200) {
+    String response = http.getString();
+    Serial.println("Response code: " + httpResponseCode);
+    Serial.println("Response: " + response);
+  } else {
+    Serial.println("Error on sending PUT Request: ");
+    Serial.println(String(httpResponseCode));
+  }
+  http.end();
 }
 
 //Happy Emotion
@@ -251,7 +261,7 @@ void getEmotion() {
   }
 }
 
-//---------------------------------HUB GROUP IDS--------------------------------------------
+//---------------------------------HUB GROUP IDS------------------------------------------------------------------------
 //  Master Sieg:
 //    Group ID : 1
 //    Name : Lower Lobby
@@ -291,57 +301,33 @@ void getEmotion() {
 //    Lights : {22, 15, 10, 23, 11, 14, 16, 21}
 //    Note : if doing a pattern with outer box, the inner light is 7
 //
-//------------------------------------------------------------------------------------------
-
-
-// VISUALIZATIONS FOR TIED COUNTS IN PROGRESS ----------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------
 
 //Description : Visualize the emotion with the highest count.
-// method visualize is currently using : Master Sieg Group IDs
 void visualize() {
   if (emotion == 0) { //Default White : Cool White THIS IS THE MirroringDefault VIZ
-    changeGroup(0, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "100");
+    sendPalette("MirroringDefault");
   }
   if (emotion == 1) { //Happy THIS IS THE MirroringHappyGradient VIZ
-    //    changeGroup(3, 3, "on", "true", "hue", "50000", "bri", "254", "sat", "150");
-    //    changeGroup(4, 3, "on", "true", "hue", "5000", "bri", "254", "sat", "150");
-    changeGroup(6, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "225");
-    changeGroup(7, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "175");
-    changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "115");
-    // send request to mqtt change palettes
+    sendPalette("MirroringHappyGradient");
   }
   if (emotion == 2) { //Okay : Blue and Yellow Lights THIS IS THE MirroringOkayGradient VIZ
-    //    changeGroup(3, 3, "on", "true", "hue", "40000", "bri", "254", "sat", "150");
-    //    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
-    changeGroup(6, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "225");
-    changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "175");
-    changeGroup(8, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "115");
-    // send request to mqtt change palettes
+    sendPalette("MirroringOkayGradient");
   }
-  if (emotion == 3) { //Sad : Purple and Blue Lights THIS IS THE MirroringSadGradient VIZ
-    //    changeGroup(3, 3, "on", "true", "hue", "47000", "bri", "254", "sat", "150");
-    //    changeGroup(4, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
-    changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "225");
-    changeGroup(7, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "175");
-    changeGroup(8, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "115");
-    // send request to mqtt change palettes
+  if (emotion == 3) { //Sad THIS IS THE MirroringSadGradient VIZ
+    sendPalette("MirroringSadGradient");
   }
   if (emotion == 21) { // Happy and Okay are displayed. THIS IS THE MirroringOH VIZ
-    changeGroup(3, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
+    sendPalette("MirroringOH");
   }
   if (emotion == 31) { // Sad and Happy are displayed. THIS IS THE MirroringSH VIZ
-    changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
+    sendPalette("MirroringSH");
   }
   if (emotion == 32) { // Sad and Okay are displayed. THIS IS THE MirroringSO VIZ
-    changeGroup(3, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
-    changeGroup(4, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
+    sendPalette("MirroringSO");
   }
   if (emotion == 321) { // All emotions are displayed. THIS IS THE MirroringSOH VIZ
-    changeGroup(6, 3, "on", "true", "hue", "42000", "bri", "254", "sat", "150");
-    changeGroup(7, 3, "on", "true", "hue", "20000", "bri", "254", "sat", "150");
-    changeGroup(8, 3, "on", "true", "hue", "11000", "bri", "254", "sat", "150");
+    sendPalette("MirroringSOH");
   }
 }
 
@@ -362,37 +348,38 @@ void pulse() {
 }
 
 //Description: Each hour, we must compare the counts of the lights for the summary visualization.
-//Rank the emotions from greatest to least.
+//Rank the emotions from least to greatest.
 //void rank()
 
-bool MIRRORING_RUNNING = true;
 
-//receive MQTT messages
-void subscribeReceive(char* topic, byte* payload, unsigned int length) {
-  // Print the topic
-  dbprintln("MQTT message Topic: " + topic + ", Message: ");
-  for (int i = 0; i < length; i ++)
-  {
-    dbprint(char(payload[i]));
-  }
-  if(char(payload[0] = '0')) {
-    MIRRORING_RUNNING = false;
-  }
-  if(char(payload[0] = '1')) {
-    MIRRORING_RUNNING = true;
-  }
-  // Print a newline
-  dbprintln("");
-}
 
+////receive MQTT messages
+//void subscribeReceive(char* topic, byte* payload, unsigned int length) {
+//  // Print the topic
+//  Serial.println("MQTT message Topic: " + String(topic) + ", Message: ");
+//  for (int i = 0; i < length; i ++)
+//  {
+//    Serial.print(char(payload[i]));
+//  }
+//  String plString = String((char *)payload);
+//  if(char(payload[0] == 'm')) {
+//    if(char(payload[1] == '0')) {
+//      MIRRORING_RUNNING_DOWNSTAIRS = false;
+//    }else if(char(payload[1] == '1')) {
+//      MIRRORING_RUNNING_DOWNSTAIRS = true;
+//    }
+//  }
+//  // Print a newline
+//  Serial.println("");
+//}
 
 //Connect to MQTT server
 void reconnect() {
   while (!client.connected()) { // Loop until we're reconnected
-    dbprintln("Attempting MQTT connection...");
+    Serial.println("Attempting MQTT connection...");
     if (client.connect(DEVICE_MQTT_NAME, mqtt_username, mqtt_password)) {  // Attempt to connect
       client.setCallback(subscribeReceive);
-      dbprintln("MQTT connected");
+      Serial.println("MQTT connected");
       //client.subscribe(subscribe_top); //Does ttt need to sub to anything?
       //sendState(0);
     } else {
@@ -405,9 +392,7 @@ void reconnect() {
   }
 }
 
-
-
-//Send MQTT status update
+//Send Palette to Hourglass to push to lights
 void sendPalette(String paletteName) {
   StaticJsonBuffer<512> jsonBuffer;
 
