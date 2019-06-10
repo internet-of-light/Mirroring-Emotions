@@ -42,6 +42,7 @@ int button1State = 0;
 int button2State = 0;
 int button3State = 0;
 
+int debounce[] = {0, 0, 0};
 // Keeps track of which emotion(s) should be displayed
 int emotion = 0;
 int prevEmotion = 0;
@@ -193,7 +194,11 @@ void changeLight(byte lightNum, byte transitiontime, String parameter, String ne
 void button1() {
   button1State = digitalRead(button1Pin);
   //Serial.println(button1State);
-  if (button1State == HIGH) {
+  if (button1State == LOW) {
+    debounce[0] = 0;
+  }
+  if (button1State == HIGH and not debounce[0]) {
+    debounce[0] = 1;
     countButton1 += 1;
     //pulse();
   }
@@ -203,7 +208,11 @@ void button1() {
 void button2() {
   button2State = digitalRead(button2Pin);
   //Serial.println(button2State);
-  if (button2State == HIGH) {
+  if (button2State == LOW) {
+    debounce[1] = 0;
+  }
+  if (button2State == HIGH and not debounce[1]) {
+    debounce[1] = 1;
     countButton2 += 1;
     //pulse();
   }
@@ -213,7 +222,11 @@ void button2() {
 void button3() {
   button3State = digitalRead(button3Pin);
   //Serial.println(button3State);
-  if (button3State == HIGH) {
+  if (button3State == LOW) {
+    debounce[2] = 0;
+  }
+  if (button3State == HIGH and not debounce[2]) {
+    debounce[2] = 1;
     countButton3 += 1;
     //pulse();
   }
@@ -378,7 +391,7 @@ void reconnect() {
   while (!client.connected()) { // Loop until we're reconnected
     Serial.println("Attempting MQTT connection...");
     if (client.connect(DEVICE_MQTT_NAME, mqtt_username, mqtt_password)) {  // Attempt to connect
-      client.setCallback(subscribeReceive);
+      //client.setCallback(subscribeReceive);
       Serial.println("MQTT connected");
       //client.subscribe(subscribe_top); //Does ttt need to sub to anything?
       //sendState(0);
